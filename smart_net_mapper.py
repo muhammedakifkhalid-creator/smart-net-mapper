@@ -12,8 +12,24 @@ def run(cmd):
 # -----------------------------
 # Auto detect network
 # -----------------------------
+import platform
+import subprocess
+
 def get_network():
-    out = run("ip -4 addr")
+    if platform.system() == "Windows":
+        output = subprocess.check_output("ipconfig", shell=True, text=True)
+        
+        for line in output.splitlines():
+            if "IPv4" in line:
+                ip = line.split(":")[-1].strip()
+                return ip + "/24"   # basic assumption
+
+    else:
+        output = subprocess.check_output("ip -4 addr", shell=True, text=True)
+        
+        for line in output.splitlines():
+            if "inet " in line:
+                return line.strip().split()[1]
     
     matches = re.findall(r"inet (\d+\.\d+\.\d+\.\d+)/(\d+)", out)
 
